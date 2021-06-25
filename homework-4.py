@@ -47,8 +47,6 @@ month_list = sorted(excel_data_frame.Month.unique())
 m_excel_data = excel_data_frame[excel_data_frame[KEY_GENDER]==GENDER_MALE]
 # создаем таблицу для женщин
 f_excel_data = excel_data_frame[excel_data_frame[KEY_GENDER]==GENDER_FEMALE]
-# создаем таблицу проверрочную таблицу по месяцам
-feb_excel_data = excel_data_frame[excel_data_frame["Month"]==month_list[1]]
 
 # Получаем список браузеров по популярности
 browser_counter = get_max_val(excel_data_frame, KEY_BROWSER)
@@ -59,15 +57,23 @@ product_counter = get_max_val(excel_data_frame, KEY_ITEM)
 # Групперуем посещения по браузерам и месяцам и считаем кол-во
 browser_by_month=excel_data_frame.groupby([KEY_BROWSER, pandas.Grouper(key='Month')])[KEY_BROWSER].count()
 
+# Получаем список товаров по популярности для мужчин
+m_product_counter = get_max_val(m_excel_data, KEY_ITEM)
+
+# Получаем список товаров по популярности для женщин
+f_product_counter = get_max_val(f_excel_data, KEY_ITEM)
+
+# создаем таблицу проверрочную таблицу по месяцам
+#feb_excel_data = excel_data_frame[excel_data_frame["Month"]==month_list[1]]
 # Получаем список товаров по популярности февраль
-feb_product_counter = get_max_val(feb_excel_data, KEY_ITEM)
+#feb_product_counter = get_max_val(feb_excel_data, KEY_ITEM)
 
 #Проверочная печать
-print(browser_by_month.get(key = 'Яндекс: мобильное приложение'))
-print(feb_product_counter.most_common(7))
-print(product_counter.most_common(7))
-print(browser_by_month.get(key = browser_counter.most_common(7)[0][0]).get(key = month_list[0]))
-
+#print(feb_product_counter['Мешок для обуви G9807 (черный)'])
+#print(m_product_counter.most_common()[-1])
+#print(f_product_counter.most_common())
+#print(product_counter.most_common(7))
+#print(browser_by_month.get(key = browser_counter.most_common(7)[0][0]).get(key = month_list[0]))
 
 #Открытие ексель файла для записи
 filename ='report.xlsx'
@@ -75,12 +81,23 @@ wb = load_workbook(filename)
 sheet = wb['Лист1']
 #Запись данных в ексель файл
 for i in range (7):
+    #7 самых популярных браузеров
     sheet.cell(row=i+5, column=1).value = browser_counter.most_common(7)[i][0]
+    #7 самых популярных товаров
     sheet.cell(row=i+19, column=1).value = product_counter.most_common(7)[i][0]
-    sheet.cell(row=i+5, column=15).value = browser_counter.most_common(7)[i][1]
+    #7 количество товаров для проверки
+    #sheet.cell(row=i+5, column=15).value = browser_counter.most_common(7)[i][1]
+   
     for j in range(len(month_list)):
+        #количество посещений по месяцам
         sheet.cell(row=i+5, column=j+3).value = browser_by_month.get(key = browser_counter.most_common(7)[i][0]).get(key = month_list[j])
-        
-
+        #количество товаров по месяцам
+        sheet.cell(row=i+19, column=j+3).value = get_max_val(excel_data_frame[excel_data_frame["Month"]==month_list[j]], KEY_ITEM)[product_counter.most_common(7)[i][0]]
+#       самые популярные и самые не востребованные товары среди мужчин и женщин 
+sheet.cell(row=31, column=2).value = m_product_counter.most_common(1)[0][0]
+sheet.cell(row=32, column=2).value = f_product_counter.most_common(1)[0][0]
+sheet.cell(row=33, column=2).value = m_product_counter.most_common()[-1][0]
+sheet.cell(row=34, column=2).value = f_product_counter.most_common()[-1][0]
+# сохраняем файл
 wb.save(filename)
 
